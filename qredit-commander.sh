@@ -1340,7 +1340,7 @@ else
 		echo -e "$(yellow "It's the first time you are starting this script!") "
 		echo -e "$(yellow "First it will check if your system is up to date") "
 		echo -e "$(yellow "install updates and needed prerequisites")\n"
-		echo -e "$(yellow "Please be patient! It can take up to 5 minutes!")\n"
+		echo -e "$(yellow "Please HODL! It can take up to 5 minutes!")\n"
 		pause
 		os_up
 		clear
