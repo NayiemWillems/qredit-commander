@@ -79,7 +79,7 @@ EDIT=nano
 
 GIT_ORIGIN=mainnet
 
-LOC_SERVER="http://localhost:4001"
+LOC_SERVER="http://localhost:4101"
 
 ADDRESS=""
 
@@ -93,7 +93,7 @@ re='^[0-9]+$' # For numeric checks
 log="install_qredit.log"
 
 #~ SEED NODES ~#
-seed0=("185.85.13.192:4000" "seed01")
+seed0=("185.85.13.192:4100" "seed01")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -187,7 +187,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep qredit-node | awk '{print $1}'`
+        node=`pgrep -a "node" | grep qredit-full-node | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
@@ -877,7 +877,7 @@ two(){
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 	if [ "$keys" == "Y" ]; then
 		proc_vars
-        	if [ -e $qredit-full-node/app.js ]; then
+        	if [ -e $qreditdir/app.js ]; then
                 	clear
                 	asciiart
                 	echo -e "\n$(green " ✔ Qredit Node installation found in $qreditdir")\n"
@@ -972,7 +972,7 @@ three(){
                 	echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
 			echo -e "$(green "            Updating Qredit Node...")\n"
 			update_qredita
-			forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
         	        pause
         	fi
@@ -1002,7 +1002,7 @@ four(){
 		# Here should come the snap choice
 		snap_menu
                 echo -e "$(green "            Starting QREDIT Node...")"
-		forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+		forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
                 echo -e "\n$(green "    ✔ Qredit Node was successfully started")\n"
                 pause
         else
@@ -1017,7 +1017,7 @@ four(){
 		snap_menu
 		echo -e "$(green "            Starting Qredit Node...")"
 		cd $qreditdir
-                forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+                forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
                 echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
                 pause
         fi
@@ -1042,7 +1042,7 @@ five(){
 		else
 			echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
 			echo -e "$(green "            Starting Qredit Node...")\n"
-			forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
 			pause
 		fi
@@ -1087,7 +1087,7 @@ start(){
 		else
 			echo -e "$(green "            Starting Qredit Node...")\n"
 			cd $qreditdir
-			forever start qredit/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			cd $parent
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
 			sleep 1
