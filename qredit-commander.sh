@@ -202,7 +202,7 @@ function proc_vars {
         top_lvl=$(top_level_parent_pid $node)
 
         # Looking for qredit-node installations and performing actions
-        qreditdir=`locate -b qredit-node`
+        qreditdir=`locate -b qredit-full-node`
 
         # Getting the parent of the install path
         parent=`dirname $qreditdir 2>&1`
@@ -877,7 +877,7 @@ two(){
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 	if [ "$keys" == "Y" ]; then
 		proc_vars
-        	if [ -e $qreditdir/app.js ]; then
+        	if [ -e $qredit-full-node/app.js ]; then
                 	clear
                 	asciiart
                 	echo -e "\n$(green " ✔ Qredit Node installation found in $qreditdir")\n"
@@ -972,7 +972,7 @@ three(){
                 	echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
 			echo -e "$(green "            Updating Qredit Node...")\n"
 			update_qredita
-			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
         	        pause
         	fi
@@ -1002,7 +1002,7 @@ four(){
 		# Here should come the snap choice
 		snap_menu
                 echo -e "$(green "            Starting QREDIT Node...")"
-		forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+		forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
                 echo -e "\n$(green "    ✔ Qredit Node was successfully started")\n"
                 pause
         else
@@ -1017,7 +1017,7 @@ four(){
 		snap_menu
 		echo -e "$(green "            Starting Qredit Node...")"
 		cd $qreditdir
-                forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+                forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
                 echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
                 pause
         fi
@@ -1042,7 +1042,7 @@ five(){
 		else
 			echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
 			echo -e "$(green "            Starting Qredit Node...")\n"
-			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start qredit-full-node/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
 			pause
 		fi
@@ -1087,7 +1087,7 @@ start(){
 		else
 			echo -e "$(green "            Starting Qredit Node...")\n"
 			cd $qreditdir
-			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
+			forever start qredit/app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			cd $parent
 			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
 			sleep 1
@@ -1224,8 +1224,8 @@ sub_menu() {
     echo "               Additional Options"
     echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo
-    echo "           1. Install ARK Cli"
-    echo "           2. Install ARK Explorer"
+    echo "           1. Install Qredit Cli"
+    echo "           2. Install Qredit Explorer"
     echo "           3. Install Snapshot script"
     echo "           4. Install Restart script"
     echo "           5. Purge PostgeSQL"
