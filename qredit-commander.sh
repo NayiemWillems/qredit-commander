@@ -77,7 +77,7 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=mainnet
+GIT_ORIGIN=master
 
 LOC_SERVER="http://localhost:4100"
 
