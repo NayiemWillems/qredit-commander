@@ -79,7 +79,7 @@ EDIT=nano
 
 GIT_ORIGIN=master
 
-LOC_SERVER="http://localhost:4100"
+LOC_SERVER="http://localhost:4101"
 
 ADDRESS=""
 
@@ -93,7 +93,7 @@ re='^[0-9]+$' # For numeric checks
 log="install_qredit.log"
 
 #~ SEED NODES ~#
-seed0=("185.85.18.192" "seed01")
+seed0=("http://185.85.18.192:4100" "seed01")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -231,7 +231,7 @@ change_address() {
 	echo "$(yellow "   Enter your delegate address for Stats")"
 	echo "$(yellow "    WITHOUT QUOTES, followed by 'ENTER'")"
 	read -e -r -p "$(yellow " :") " inaddress
-	while [ ! "${inaddress:0:1}" == "P" ] ; do
+	while [ ! "${inaddress:0:1}" == "Q" ] ; do
 		echo -e "\n$(ired "   Enter delegate ADDRESS, NOT the SECRET!")\n"
 		read -e -r -p "$(yellow " :") " inaddress
 	done
