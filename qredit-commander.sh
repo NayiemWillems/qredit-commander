@@ -615,7 +615,7 @@ else
         read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
         if [[ "$YN" =~ [Yy]$ ]]; then
 		echo -e "$(yellow "\n     Downloading current snapshot from qredit.cloud\n")"
-                wget -nv https://snapshot.qredit.cloud/current  -O $SNAPDIR/current
+                wget -nv https://snapshots.qredit.cloud/current  -O $SNAPDIR/current
 		echo -e "$(yellow "\n              Download finished\n")"
         fi
 
