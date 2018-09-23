@@ -574,11 +574,11 @@ fi
 if [ "$(ls -A $SNAPDIR)" ]; then
 	if [[ $(expr `date +%s` - `stat -c %Y $SNAPDIR/current`) -gt 900 ]]; then
 		echo -e "$(yellow " Existing Current snapshot is older than 15 minutes")"
-        	read -e -r -p "$(yellow "\n Download from qredit.io? (Y) or use Local (N) ")" -i "Y" YN
+        	read -e -r -p "$(yellow "\n Download from qredit.cloud? (Y) or use Local (N) ")" -i "Y" YN
 			if [[ "$YN" =~ [Yy]$ ]]; then
-				echo -e "$(yellow "\n     Downloading latest snapshot from qredit.io\n")"
+				echo -e "$(yellow "\n     Downloading latest snapshot from qredit.cloud\n")"
 				rm $SNAPDIR/current
-				wget -nv https://snapshot.qredit.io/current -O $SNAPDIR/current
+				wget -nv https://snapshots.qredit.cloud/current -O $SNAPDIR/current
 				echo -e "$(yellow "\n              Download finished\n")"
 			fi
 	fi
@@ -614,8 +614,8 @@ else
         echo -e "$(red "    No snapshots found in $SNAPDIR")"
         read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
         if [[ "$YN" =~ [Yy]$ ]]; then
-		echo -e "$(yellow "\n     Downloading current snapshot from qredit.io\n")"
-                wget -nv https://snapshot.qredit.io/current  -O $SNAPDIR/current
+		echo -e "$(yellow "\n     Downloading current snapshot from qredit.cloud\n")"
+                wget -nv https://snapshot.qredit.cloud/current  -O $SNAPDIR/current
 		echo -e "$(yellow "\n              Download finished\n")"
         fi
 
