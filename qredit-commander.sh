@@ -770,7 +770,7 @@ function drop_db {
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
-        dropdb --if-exists qredit_blockchain
+        dropdb --if-exists qredit_db
 }
 
 function drop_user {
