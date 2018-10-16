@@ -1,42 +1,84 @@
-# qredit-commander
-Qredit commander repository
+#!/bin/bash
 
-## **INFOS**
-This is the bash script, forked and modified to install the Qredit Mainnet Node.
+###############################################################################
 
+# Inspired by Tharude (Ark.io) excellent ark_snapshot.sh script.
+#
+#
+# - Save to /home/##USER##/snapshot.sh
+#
+# - chmod 700 /home/##USER##/snapshot.sh
+#
+# - Edit FinalDirectory variable
+#   Make sure it's writable by snapshot user and readable by nginx user.
+#
+# - Edit Crontab
+#      crontab -u ##USER## -e
+#      2,17,32,47 * * * * /home/##USER##/snapshot.sh > /dev/null 2>&1 &
+#
+###############################################################################
 
-## **INSTALL**
+QreditNetwork="db"
+QreditNodeDirectory="$HOME/qredit-full-node"
+SnapshotDirectory='/home/nayiem'
 
-#### **Download the script**
+### Test qredit-node Started
+QreditNodePid=$( pgrep -a "node" | grep qredit-full-node | awk '{print $1}' )
+if [ "$QreditNodePid" != "" ] ; then
 
-> wget https://raw.githubusercontent.com/HodlerCompany/qredit-commander/master/qredit-commander.sh -O ~/qredit-commander.sh
+    ### Delete Snapshot(s) older then 6 hours
+    find $SnapshotDirectory -name "qredit_$QreditNetwork_*" -type f -mmin +360 -delete
 
-#### **Make it executable**
+    ### Write SeedNodeFile
+#   QreditNodeConfig="$QreditNodeDirectory/config.$QreditNetwork.json"
+    QreditNodeConfig="$QreditNodeDirectory/config.json"
+    SeedNodeFile='/tmp/qredit_seednode'
+    echo '' > $SeedNodeFile
+    cat $QreditNodeConfig | jq -c -r '.peers.list[]' | while read Line; do
+        SeedNodeAddress="$( echo $Line | jq -r '.ip' ):$( echo $Line | jq -r '.port' )"
+        echo "$SeedNodeAddress" >>  "$SeedNodeFile"
+    done
 
-> chmod 700 ~/qredit-commander.sh
+    ### Load SeedNodeFile in Memory & Remove SeedNodeFile
+    declare -a SeedNodeList=()
+    while read Line; do
+        SeedNodeList+=($Line)
+    done < $SeedNodeFile
+    rm -f $SeedNodeFile
 
-## **Run**
+    ### Get highest Height from 8 random seed nodes
+    SeedNodeCount=${#SeedNodeList[@]}
+    for (( TopHeight=0, i=1; i<=8; i++ )); do
+        RandomOffset=$(( RANDOM % $SeedNodeCount ))
+        SeedNodeUri="http://${SeedNodeList[$RandomOffset]}/api/loader/status/sync"
+        SeedNodeHeight=$( curl --max-time 2 -s $SeedNodeUri | jq -r '.height' )
+        if [ "$SeedNodeHeight" -gt "$TopHeight" ]; then TopHeight=$SeedNodeHeight; fi
+    done
 
-> ./qredit-commander.sh
+    ### Get local qredit-full-node height
+    LocalHeight=$( curl --max-time 2 -s 'http://127.0.0.1:4101/api/loader/status/sync' | jq '.height' )
 
+    ### Test qredit-node Sync.
+    if [ "$LocalHeight" -eq "$TopHeight" ]; then
 
+        ForeverPid=$( forever --plain list | grep $QreditNodePid | sed -nr 's/.*\[(.*)\].*/\1/p' )
+        cd $QreditNodeDirectory
 
+        ### Stop qredit-node
+        forever --plain stop $ForeverPid > /dev/null 2>&1 &
+        sleep 1
 
+        ### Dump Database
+        SnapshotFilename='qredit_'$QreditNetwork'_'$LocalHeight
+        pg_dump -O "qredit_$QreditNetwork" -Fc -Z6 > "$SnapshotDirectory/$SnapshotFilename"
+        sleep 1
 
-## Authors
-- Nayiem Willems <nayiem@qredit.io>
-- FX Thoorens <fx.thoorens@ark.io>
+        ### Start qredit-node
+#       forever --plain start app.js --genesis "genesisBlock.$QreditNetwork.json" --config "config.$QreditNetwork.json" > /dev/null 2>&1 &
+        forever --plain start app.js --genesis "genesisBlock.json" --config "config.json" > /dev/null 2>&1 &
 
-## License
-
-The MIT License (MIT)
-
-Copyright (c) 2018 Qredit
-
-Copyright (c) 2017 Ark
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        ### Update Symbolic Link
+        rm -f "$SnapshotDirectory/current"
+        ln -s "$SnapshotDirectory/$SnapshotFilename" "$SnapshotDirectory/current"
+    fi
+fi
