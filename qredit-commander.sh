@@ -659,7 +659,7 @@ function nvm {
                 nvm alias default 6.9.5 >>install.log
                 echo -e "$(green "      ✔ Node `node -v` has been installed")"
         else
-                echo -e "$(green "      ✔ Node `node -v` is  alredy installed")"
+                echo -e "$(green "      ✔ Node `node -v` is  already installed")"
         fi
 
         node_check npm
