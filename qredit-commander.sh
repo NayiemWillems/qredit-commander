@@ -120,7 +120,7 @@ arraylength=${#nodes[@]}
 # ASCII Art function
 function asciiart {
 clear
-tput bold; tput setaf 6
+tput bold; tput setaf 1
 cat << "EOF"
 
 
