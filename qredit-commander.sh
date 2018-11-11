@@ -135,6 +135,7 @@ cat << "EOF"
 |___||___||_|_|_||_|_|_||__,||_|_||___||___||_|   2.0
                                                                             
 W E L C O M E  T O  T H E  Q R E D I T  N E T W O R K !
+
 EOF
 tput sgr0
 }
