@@ -1315,7 +1315,7 @@ sub_menu() {
 
 read_options(){
     local choice
-    read -p "        Enter choice [1 - 7,Q,R,T,S,L]: " choice
+    read -p "        Enter choice [1 - 8,Q,R,T,S,L]: " choice
     case $choice in
         1) one ;;
         2) two ;;
