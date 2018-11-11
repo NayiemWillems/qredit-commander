@@ -1081,8 +1081,9 @@ QreditNodeDirectory="$HOME/qredit-full-node"
 SnapshotDirectory="$HOME/snapshots"
 
 ### Test qredit-node Started
-
-			echo -e "\n$(green "Please HODL. This process can take up to 2 minutes")\n"
+clear
+	asciiart
+			echo -e "\n$(green "Please HODL, this is going to take a while.")\n"
 			
 
 
