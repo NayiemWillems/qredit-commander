@@ -1081,6 +1081,11 @@ QreditNodeDirectory="$HOME/qredit-full-node"
 SnapshotDirectory="$HOME/snapshots"
 
 ### Test qredit-node Started
+
+			echo -e "\n$(green "Please HODL. This process can take up to 2 minutes")\n"
+			
+
+
 QreditNodePid=$( pgrep -a "node" | grep qredit-full-node | awk '{print $1}' )
 if [ "$QreditNodePid" != "" ] ; then
 
@@ -1118,6 +1123,7 @@ if [ "$QreditNodePid" != "" ] ; then
     ### Test qredit-node Sync.
     if [ "$LocalHeight" -eq "$TopHeight" ]; then
 
+
         ForeverPid=$( forever --plain list | grep $QreditNodePid | sed -nr 's/.*\[(.*)\].*/\1/p' )
         cd $QreditNodeDirectory
 
@@ -1133,17 +1139,19 @@ if [ "$QreditNodePid" != "" ] ; then
         ### Start qredit-node
         forever --plain start app.js --genesis "genesisBlock.json" --config "config.json" > /dev/null 2>&1 &
 
-        
-                echo -e "\n$(red "       ✘ No Qredit Node installation is found")\n"
-
         ### Update Symbolic Link
         rm -f "$SnapshotDirectory/current"
         ln -s "$SnapshotDirectory/$SnapshotFilename" "$SnapshotDirectory/current"
+
+
+        	if [ "$node" != "" ] && [ "$node" != "0" ]; then
+	                forever restart $forever_process >&- 2>&-
+			echo -e "\n$(green "    ✔ Qredit snapshot was successfully created")\n"
+			pause
     fi
 fi
-
-
-        
+     
+fi 
 }
 
 # Start Qredit Node
