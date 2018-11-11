@@ -1083,9 +1083,7 @@ SnapshotDirectory="$HOME/snapshots"
 ### Test qredit-node Started
 clear
 	asciiart
-			echo -e "\n$(green "Please HODL, this is going to take a while.")\n"
-			
-
+			echo -e "\n$(green "    Please HODL. This is going to take a while.")\n"	
 
 QreditNodePid=$( pgrep -a "node" | grep qredit-full-node | awk '{print $1}' )
 if [ "$QreditNodePid" != "" ] ; then
