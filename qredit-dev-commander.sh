@@ -966,7 +966,7 @@ three(){
                 	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
 	                echo -e "$(green "       Directory: $qreditdir")\n"
 			echo -e "\n$(green "             Updating Qredit Dev Node...")\n"
-			update_qredit
+			update_qreditdev
 	                echo -e "$(green "                Restarting...")"
         	        forever restart $forever_process >&- 2>&-
                 	echo -e "\n$(green "    ✔ Qredit Node was successfully restarted")\n"
@@ -974,7 +974,7 @@ three(){
 		else
                 	echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
 			echo -e "$(green "            Updating Qredit Dev Node...")\n"
-			update_qredit
+			update_qreditdev
 			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			echo -e "$(green "    ✔ Qredit Dev Node was successfully started")\n"
         	        pause
