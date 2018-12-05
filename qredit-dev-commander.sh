@@ -471,9 +471,9 @@ function ntpd {
 function log_rotate {
 	if [[ "$(uname)" == "Linux" ]]; then
 
-		if [ ! -f /etc/ .d/qredit-dev-logrotate ]; then
+		if [ ! -f /etc/ .d/qreditdev-logrotate ]; then
 			echo -e " Setting up Logrotate for Qredit dev node log files."
-			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/qredit-dev-logrotate
+			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/qreditdev-logrotate
 $HOME/$qreditdir/logs/qreditdev.log {
         size=50M
         copytruncate
