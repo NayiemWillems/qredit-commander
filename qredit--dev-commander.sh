@@ -43,9 +43,9 @@ function orange {
 if [ "$(id -u)" = "0" ]; then
 	clear
 	echo -e "\n$(ired " !!! This script should NOT be started using sudo or as the root user !!! ") "
-	echo -e "\nUse $(green "bash qredit-commander.sh") as a REGULAR user instead"
-	echo -e "Execute ONCE $(green "chmod +x qredit-commander.sh") followed by $(green "ENTER")"
-	echo -e "and start it only by $(green "./qredit-commander.sh") as regular user after\n"
+	echo -e "\nUse $(green "bash qredit-dev-commander.sh") as a REGULAR user instead"
+	echo -e "Execute ONCE $(green "chmod +x qredit-dev-commander.sh") followed by $(green "ENTER")"
+	echo -e "and start it only by $(green "./qredit-dev-commander.sh") as regular user after\n"
 	exit 1
 fi
 
@@ -79,21 +79,21 @@ EDIT=nano
 
 GIT_ORIGIN=master
 
-LOC_SERVER="http://localhost:4101"
+LOC_SERVER="http://localhost:5101"
 
 ADDRESS=""
 
-SNAPDIR="$HOME/snapshots"
+SNAPDIR="$HOME/dev-snapshots"
 
 re='^[0-9]+$' # For numeric checks
 
 #pubkey="02a3e3e5fc36565ab4275ddfee1592667f6c46f5e9aa7528499511d65c5e82a7db"
 
 # Logfile
-log="install_qredit.log"
+log="install_qreditdev.log"
 
 #~ SEED NODES ~#
-seed0=("http://185.85.18.192:4100" "seed01")
+seed0=("http://213.125.22.45:5101" "seed01")
 
 #~ API CALL ~#
 apicall="/api/loader/status/sync"
@@ -123,18 +123,18 @@ clear
 tput bold; tput setaf 1
 cat << "EOF"
 
-
-   ██████╗ ██████╗ ███████╗██████╗ ██╗████████╗                                    
-  ██╔═══██╗██╔══██╗██╔════╝██╔══██╗██║╚══██╔══╝                                    
-  ██║   ██║██████╔╝█████╗  ██║  ██║██║   ██║                                       
-  ██║▄▄ ██║██╔══██╗██╔══╝  ██║  ██║██║   ██║                                       
-  ╚██████╔╝██║  ██║███████╗██████╔╝██║   ██║                                       
-   ╚══▀▀═╝ ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝   ╚═╝                                       
- ___  ___  _____  _____  ___  ___  _| | ___  ___ 
-|  _|| . ||     ||     || .'||   || . || -_||  _|
-|___||___||_|_|_||_|_|_||__,||_|_||___||___||_|   2.0
-                                                                            
-W E L C O M E  T O  T H E  Q R E D I T  N E T W O R K !
+ ___________ ___________ _____ _____  
+|  _  | ___ \  ___|  _  \_   _|_   _| 
+| | | | |_/ / |__ | | | | | |   | |   
+| | | |    /|  __|| | | | | |   | |   
+\ \/' / |\ \| |___| |/ / _| |_  | |   
+ \_/\_\_| \_\____/|___/  \___/  \_/                            
+______ _____ _   _ _   _  _____ _____ 
+|  _  \  ___| | | | \ | ||  ___|_   _|
+| | | | |__ | | | |  \| || |__   | |  
+| | | |  __|| | | | . ` ||  __|  | |  
+| |/ /| |___\ \_/ / |\  || |___  | |  
+|___/ \____/ \___/\_| \_/\____/  \_/                                                                   
 
 EOF
 tput sgr0
@@ -190,7 +190,7 @@ function top_level_parent_pid {
 
 # Process management variables
 function proc_vars {
-        node=`pgrep -a "node" | grep qredit-full-node | awk '{print $1}'`
+        node=`pgrep -a "node" | grep qredit-dev-node | awk '{print $1}'`
         if [ "$node" == "" ] ; then
                 node=0
         fi
@@ -205,7 +205,7 @@ function proc_vars {
         top_lvl=$(top_level_parent_pid $node)
 
         # Looking for qredit-node installations and performing actions
-        qreditdir=`locate -b qredit-full-node`
+        qreditdir=`locate -b qredit-dev-node`
 
         # Getting the parent of the install path
         parent=`dirname $qreditdir 2>&1`
@@ -219,14 +219,14 @@ function proc_vars {
 
 #PSQL Queries
 query() {
-PUBKEY="$(psql -d qredit_db -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-DNAME="$(psql -d qredit_db -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-PROD_BLOCKS="$(psql -d qredit_db -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-MISS_BLOCKS="$(psql -d qredit_db -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-#BALANCE="$(psql -d qredit_db -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-BALANCE="$(psql -d qredit_db -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-HEIGHT="$(psql -d qredit_db -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-RANK="$(psql -d qredit_db -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'0369093c456fd8704ae4e401f3b3a3ad1581453cf7feb34c513a2f599f9adf6aac'"';' | xargs)"
+PUBKEY="$(psql -d qredit_dev -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+DNAME="$(psql -d qredit_dev -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+PROD_BLOCKS="$(psql -d qredit_dev -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+MISS_BLOCKS="$(psql -d qredit_dev -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+#BALANCE="$(psql -d qredit_dev -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+BALANCE="$(psql -d qredit_dev -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+HEIGHT="$(psql -d qredit_dev -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+RANK="$(psql -d qredit_dev -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'0369093c456fd8704ae4e401f3b3a3ad1581453cf7feb34c513a2f599f9adf6aac'"';' | xargs)"
 }
 
 # Stats Address Change
@@ -301,16 +301,16 @@ while true; do
 	echo
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
         if [ -e $qreditdir/app.js ]; then
-                echo -e "\n$(green "       ✔ Qredit Node installation found!")\n"
+                echo -e "\n$(green "       ✔ Qredit Dev Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      Qredit Node process is running with:")"
+                        echo -e "$(green "      Qredit Dev Node process is running with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
                         echo -e "$(green "   and Work Directory: $qreditdir")\n"
                 else
-                        echo -e "\n$(red "       ✘ No Qredit Node process is running")\n"
+                        echo -e "\n$(red "       ✘ No Qredit Dev Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No Qredit Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No Qredit Dev Node installation is found")\n"
         fi
 	echo -e "\n$(yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")"
 	echo -e "\n$(yellow "          Press 'Enter' to terminate          ")"
@@ -328,11 +328,11 @@ function stats {
 	is_syncing=`curl -s --connect-timeout 1 $LOC_SERVER/api/loader/status/sync 2>/dev/null | jq ".syncing"`
 
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-		echo -e "$(green "       Instance of Qredit Node found with:")"
+		echo -e "$(green "       Instance of Qredit Dev Node found with:")"
 		echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
 		echo -e "$(green "       Directory: $qreditdir")\n"
 	else
-		echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
+		echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
 		pause
 	fi
 
@@ -467,14 +467,14 @@ function ntpd {
         echo "-------------------------------------------------------------------"
 }
 
-# Logrotate for Qredit Node logs
+# Logrotate for Qredit Dev Node logs
 function log_rotate {
 	if [[ "$(uname)" == "Linux" ]]; then
 
-		if [ ! -f /etc/ .d/qredit-logrotate ]; then
-			echo -e " Setting up Logrotate for Qredit node log files."
-			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/qredit-logrotate
-$HOME/$qreditdir/logs/qredit.log {
+		if [ ! -f /etc/ .d/qredit-dev-logrotate ]; then
+			echo -e " Setting up Logrotate for Qredit dev node log files."
+			sudo bash -c "cat << 'EOF' >> /etc/logrotate.d/qredit-dev-logrotate
+$HOME/$qreditdir/logs/qreditdev.log {
         size=50M
         copytruncate
         create 660 $USER $USER
@@ -510,7 +510,7 @@ function git_upd_check {
 		cd $HOME
 
 		if [ "$LOCAL" == "$REMOTE" ]; then
-			echo -e "         $(igreen "    QreditNode is Up-to-date    \n")"
+			echo -e "         $(igreen "    QreditDevNode is Up-to-date    \n")"
 			UP_TO_DATE=1
 		elif [ "$LOCAL" == "$BASE" ]; then
 			echo -e "         $(ired "   Please Update! Press (3)    \n")"
@@ -534,7 +534,7 @@ function purge_pgdb {
         else
 	echo -e "    $(ired "                                        ")"
 	echo -e "    $(ired "   WARNING! This option will stop all   ")"
-	echo -e "    $(ired "   running Qredit Node processes and will  ")"
+	echo -e "    $(ired "   running Qredit Dev Node processes and will  ")"
 	echo -e "    $(ired "   remove the databases and PostgreSQL  ")"
 	echo -e "    $(ired "   installation! Are you REALLY sure?   ")"
 	echo -e "    $(ired "                                        ")"
@@ -581,7 +581,7 @@ if [ "$(ls -A $SNAPDIR)" ]; then
 			if [[ "$YN" =~ [Yy]$ ]]; then
 				echo -e "$(yellow "\n     Downloading latest snapshot from qredit.cloud\n")"
 				rm $SNAPDIR/current
-				wget -nv https://snapshots.qredit.cloud/current -O $SNAPDIR/current
+				wget -nv https://snapshots.qredit.cloud/dev/current -O $SNAPDIR/current
 				echo -e "$(yellow "\n              Download finished\n")"
 			fi
 	fi
@@ -618,7 +618,7 @@ else
         read -e -r -p "$(yellow "\n Do you like to download the latest snapshot? (Y/n) ")" -i "Y" YN
         if [[ "$YN" =~ [Yy]$ ]]; then
 		echo -e "$(yellow "\n     Downloading current snapshot from qredit.cloud\n")"
-                wget -nv https://snapshots.qredit.cloud/current  -O $SNAPDIR/current
+                wget -nv https://snapshots.qredit.cloud/dev/current  -O $SNAPDIR/current
 		echo -e "$(yellow "\n              Download finished\n")"
         fi
 
@@ -682,7 +682,7 @@ function nvm {
                 npm install forever -g >>install.log 2>&1
                 echo -e "$(green "      ✔ Forever has been installed")"
         else
-                echo -e "$(green "      ✔ Forever is alredy installed")"
+                echo -e "$(green "      ✔ Forever is already installed")"
         fi
 
         # Setting fs.notify.max_user_watches
@@ -695,13 +695,13 @@ function nvm {
         echo -e "\n$(yellow "Check install.log for reported install errors")"
 }
 
-# Install Qredit Node
+# Install Qredit Dev Node
 function inst_qredit {
 #	proc_vars
 	cd $HOME
-        mkdir qredit-full-node
-        git clone https://github.com/HodlerCompany/qredit-full-node.git 2>/dev/null
-        cd qredit-full-node
+        mkdir qredit-dev-node
+        git clone https://github.com/NayiemWillems/qredit-dev-node.git 2>/dev/null
+        cd qredit-dev-node
 	git checkout $GIT_ORIGIN 2>/dev/null
 	git pull origin $GIT_ORIGIN 2>/dev/null
         npm install grunt-cli -g 2>/dev/null
@@ -713,7 +713,7 @@ function inst_qredit {
         npm install 2>/dev/null
 }
 
-# Create Qredit user and DB
+# Create Qredit Dev user and DB
 function create_db {
         #check if PG is running here if not Start.
         if [ -z "$pgres" ]; then
@@ -728,7 +728,7 @@ function create_db {
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
         sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'password' CREATEDB;" >&- 2>&-
         sleep 1
-        createdb qredit_db
+        createdb qredit_dev
 }
 
 # Check if DB exists
@@ -738,7 +738,7 @@ function db_exists {
                 sudo service postgresql start
         fi
 
-        if [[ ! $(sudo -u postgres psql qredit_db -c '\q' 2>&1) ]]; then
+        if [[ ! $(sudo -u postgres psql qredit_dev -c '\q' 2>&1) ]]; then
                 read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 drop_db;
@@ -767,13 +767,13 @@ function user_exists {
         fi
 }
 
-# Drop QREDIT DB
+# Drop QREDIT DEV DB
 function drop_db {
         # check if it's running and start if not.
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
-        dropdb --if-exists qredit_db
+        dropdb --if-exists qredit_dev
 }
 
 function drop_user {
@@ -788,7 +788,7 @@ function drop_user {
         fi
 }
 
-function update_qredit {
+function update_qreditdev {
 	if [ "$UP_TO_DATE" -ne 1 ]; then
 	        cd $qreditdir
 #       	 forever stop app.js
@@ -815,7 +815,7 @@ function update_qredit {
 #		forever restart $forever_process
 #	        forever start app.js --genesis genesisBlock.json --config config.json
 	else
-		echo "Qredit Node is already up to date!"
+		echo "Qredit Dev Node is already up to date!"
 		sleep 2
 	fi
 }
@@ -833,16 +833,16 @@ function secret {
 
 ### Menu Options ###
 
-# Install QREDIT node
+# Install QREDIT DEV node
 one(){
 	cd $HOME
 	proc_vars
 	if [ -e $qreditdir/app.js ]; then
 		clear
 		asciiart
-		echo -e "\n$(green "       ✔ Qredit Node is already installed!")\n"
+		echo -e "\n$(green "       ✔ Qredit Dev Node is already installed!")\n"
 		if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                	echo -e "$(green "A working instance of Qredit Node is found with:")"
+                	echo -e "$(green "A working instance of Qredit Dev Node is found with:")"
                 	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
         	        echo -e "$(green "and Work Directory: $qreditdir")\n"
                 fi
@@ -850,7 +850,7 @@ one(){
 	else
 		clear
 		asciiart
-		echo -e "$(yellow "           Installing Qredit node....")"
+		echo -e "$(yellow "           Installing Qredit Dev node....")"
 		create_db
 		inst_qredit
 		clear
@@ -872,22 +872,22 @@ one(){
 	fi
 }
 
-# Reinstall Qredit Node
+# Reinstall Qredit Dev Node
 two(){
 	clear
 	asciiart
-	echo -e "$(ired "!!! This option will erase your DB and Qredit Node installation !!!")\n"
+	echo -e "$(ired "!!! This option will erase your DB and Qredit Dev Node installation !!!")\n"
 	read -e -r -p "$(red "   Are you sure that you want to proceed? (Y/N): ")" -i "N" keys
 	if [ "$keys" == "Y" ]; then
 		proc_vars
         	if [ -e $qreditdir/app.js ]; then
                 	clear
                 	asciiart
-                	echo -e "\n$(green " ✔ Qredit Node installation found in $qreditdir")\n"
+                	echo -e "\n$(green " ✔ Qredit Dev Node installation found in $qreditdir")\n"
                 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        	echo -e "$(green "A working instance of Qredit Node is found with:")"
+                        	echo -e "$(green "A working instance of Qredit Dev Node is found with:")"
                         	echo -e "$(green "System PID: $node, Forever PID $forever_process")"
-				echo -e "$(yellow "           Stopping Qredit node ...")\n"
+				echo -e "$(yellow "           Stopping Qredit Dev node ...")\n"
 				cd $qreditdir
 				forever --plain stop $forever_process >&- 2>&-
 				cd $parent
@@ -904,7 +904,7 @@ two(){
 				cp $qreditdir/config.json $parent
 				cd $parent
 			fi
-			echo -e "$(yellow "        Removing Qredit Node directory...")\n"
+			echo -e "$(yellow "        Removing Qredit Dev Node directory...")\n"
 			sleep 1
 			rm -rf $qreditdir
 			drop_db
@@ -917,12 +917,12 @@ two(){
 				if [ "$keys" == "Y" ]; then
 					cp $parent/config.json $qreditdir
 					echo -e "\n$(green " ✔ Config was restored in $qreditdir")\n"
-					read -e -r -p "$(yellow " Do you want to start Qredit Node now? (Y/N): ")" -i "Y" keys
+					read -e -r -p "$(yellow " Do you want to start Qredit Dev Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
 						start
 					fi
 				else
-					read -e -r -p "$(yellow " Do you want to start Qredit Node now? (Y/N): ")" -i "Y" keys
+					read -e -r -p "$(yellow " Do you want to start Qredit Dev Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
 						start
 					fi
@@ -949,7 +949,7 @@ two(){
 				fi
 			fi
 #			echo "Break2"; pause
-			read -e -r -p "$(yellow " Do you want to start Qredit Node now? (Y/N): ")" -i "Y" keys
+			read -e -r -p "$(yellow " Do you want to start Qredit Dev Node now? (Y/N): ")" -i "Y" keys
 			if [ "$keys" == "Y" ]; then
 				start
 			fi
@@ -962,25 +962,25 @@ three(){
         proc_vars
 	if [ "$UP_TO_DATE" -ne 1 ]; then
 	        if [ "$node" != "" ] && [ "$node" != "0" ]; then
-        	        echo -e "$(green "       Instance of Qredit Node found with:")"
+        	        echo -e "$(green "       Instance of Qredit Dev Node found with:")"
                 	echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
 	                echo -e "$(green "       Directory: $qreditdir")\n"
-			echo -e "\n$(green "             Updating Qredit Node...")\n"
+			echo -e "\n$(green "             Updating Qredit Dev Node...")\n"
 			update_qredit
 	                echo -e "$(green "                Restarting...")"
         	        forever restart $forever_process >&- 2>&-
                 	echo -e "\n$(green "    ✔ Qredit Node was successfully restarted")\n"
 	                pause
 		else
-                	echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
-			echo -e "$(green "            Updating Qredit Node...")\n"
+                	echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
+			echo -e "$(green "            Updating Qredit Dev Node...")\n"
 			update_qredit
 			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
-			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
+			echo -e "$(green "    ✔ Qredit Dev Node was successfully started")\n"
         	        pause
         	fi
 	else
-			echo -e "         $(igreen " Qredit Node is already Up-to-date \n")"
+			echo -e "         $(igreen " Qredit Dev Node is already Up-to-date \n")"
 			sleep 2
 	fi
 
@@ -990,38 +990,38 @@ four(){
         asciiart
         proc_vars
         if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of Qredit Node found with:")"
+                echo -e "$(green "       Instance of Qredit Dev Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
                 echo -e "$(green "       Directory: $testdir")\n"
-                echo -e "\n$(green "            Stopping Qredit Node...")\n"
+                echo -e "\n$(green "            Stopping Qredit Dev Node...")\n"
 		cd $qreditdir
 		forever stop $forever_process >&- 2>&-
-		echo -e "$(green "             Dropping QREDIT DB...")\n"
+		echo -e "$(green "             Dropping QREDIT DEV DB...")\n"
                 drop_db
 		drop_user
-		echo -e "$(green "             Creating QREDIT DB...")\n"
+		echo -e "$(green "             Creating QREDIT DEV DB...")\n"
 		create_db
 
 		# Here should come the snap choice
 		snap_menu
-                echo -e "$(green "            Starting QREDIT Node...")"
+                echo -e "$(green "            Starting QREDIT DEV Node...")"
 		forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
-                echo -e "\n$(green "    ✔ Qredit Node was successfully started")\n"
+                echo -e "\n$(green "    ✔ Qredit Dev Node was successfully started")\n"
                 pause
         else
-                echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
-                echo -e "$(green "             Dropping Qredit DB...")\n"
+                echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
+                echo -e "$(green "             Dropping Qredit Dev DB...")\n"
 		drop_db
 		drop_user
-		echo -e "$(green "             Creating Qredit DB...")\n"
+		echo -e "$(green "             Creating Qredit Dev DB...")\n"
 		create_db
 
 		# Here should come the snap choice
 		snap_menu
-		echo -e "$(green "            Starting Qredit Node...")"
+		echo -e "$(green "            Starting Qredit Dev Node...")"
 		cd $qreditdir
                 forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
-                echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
+                echo -e "$(green "    ✔ Qredit Dev Node was successfully started")\n"
                 pause
         fi
 }
@@ -1035,18 +1035,18 @@ five(){
 	read -e -r -p "$(yellow " Do you want to apply your new config? (Y/N): ")" -i "Y" keys
 	if [ "$keys" == "Y" ]; then
         	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-			echo -e "\n$(green "       Instance of Qredit Node found with:")"
+			echo -e "\n$(green "       Instance of Qredit Dev Node found with:")"
 			echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
 			echo -e "$(green "       Directory: $qreditdir")\n"
 			echo -e "$(green "                Restarting...")"
 	                forever restart $forever_process >&- 2>&-
-			echo -e "\n$(green "    ✔ Qredit Node was successfully restarted")\n"
+			echo -e "\n$(green "    ✔ Qredit Dev Node was successfully restarted")\n"
 			pause
 		else
-			echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
-			echo -e "$(green "            Starting Qredit Node...")\n"
+			echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
+			echo -e "$(green "            Starting Qredit Dev Node...")\n"
 			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
-			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
+			echo -e "$(green "    ✔ Qredit Dev Node was successfully started")\n"
 			pause
 		fi
 	fi
@@ -1077,16 +1077,16 @@ sub_menu
 
 # Create Snapshot
 eight(){
-QreditNetwork="db"
-QreditNodeDirectory="$HOME/qredit-full-node"
-SnapshotDirectory="$HOME/snapshots"
+QreditNetwork="dev"
+QreditNodeDirectory="$HOME/qredit-dev-node"
+SnapshotDirectory="$HOME/dev-snapshots"
 
-### Test qredit-node Started
+### Test qredit-dev-node Started
 clear
 	asciiart
 			echo -e "\n$(green "    Please HODL. This is going to take a while.")\n"	
 
-QreditNodePid=$( pgrep -a "node" | grep qredit-full-node | awk '{print $1}' )
+QreditNodePid=$( pgrep -a "node" | grep qredit-dev-node | awk '{print $1}' )
 if [ "$QreditNodePid" != "" ] ; then
 
     ### Delete Snapshot(s) older then 6 hours
@@ -1117,8 +1117,8 @@ if [ "$QreditNodePid" != "" ] ; then
         if [ "$SeedNodeHeight" -gt "$TopHeight" ]; then TopHeight=$SeedNodeHeight; fi
     done
 
-    ### Get local qredit-full-node height
-    LocalHeight=$( curl --max-time 2 -s 'http://127.0.0.1:4101/api/loader/status/sync' | jq '.height' )
+    ### Get local qredit-dev-node height
+    LocalHeight=$( curl --max-time 2 -s 'http://127.0.0.1:5101/api/loader/status/sync' | jq '.height' )
 
     ### Test qredit-node Sync.
     if [ "$LocalHeight" -eq "$TopHeight" ]; then
@@ -1127,7 +1127,7 @@ if [ "$QreditNodePid" != "" ] ; then
         ForeverPid=$( forever --plain list | grep $QreditNodePid | sed -nr 's/.*\[(.*)\].*/\1/p' )
         cd $QreditNodeDirectory
 
-        ### Stop qredit-node
+        ### Stop qredit-dev-node
         forever --plain stop $ForeverPid > /dev/null 2>&1 &
         sleep 1
 
@@ -1136,7 +1136,7 @@ if [ "$QreditNodePid" != "" ] ; then
         pg_dump -O "qredit_$QreditNetwork" -Fc -Z6 > "$SnapshotDirectory/$SnapshotFilename"
         sleep 1
 
-        ### Start qredit-node
+        ### Start qredit-dev-node
         forever --plain start app.js --genesis "genesisBlock.json" --config "config.json" > /dev/null 2>&1 &
 
         ### Update Symbolic Link
@@ -1146,7 +1146,7 @@ if [ "$QreditNodePid" != "" ] ; then
 
         	if [ "$node" != "" ] && [ "$node" != "0" ]; then
 	                forever restart $forever_process >&- 2>&-
-			echo -e "\n$(green "    ✔ Qredit snapshot was successfully created")\n"
+			echo -e "\n$(green "    ✔ Qredit Dev snapshot was successfully created")\n"
 			pause
     fi
 fi
@@ -1154,32 +1154,32 @@ fi
 fi 
 }
 
-# Start Qredit Node
+# Start Qredit Dev Node
 start(){
         proc_vars
 	echo $qreditdir
         if [ -e $qreditdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ Qredit Node installation found!")\n"
+                echo -e "\n$(green "       ✔ Qredit Dev Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of Qredit Node was found with:")"
+                        echo -e "$(green " A working instance of Qredit Dev Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
                         echo -e "$(green "   and Work Directory: $qreditdir")\n"
 		else
-			echo -e "$(green "            Starting Qredit Node...")\n"
+			echo -e "$(green "            Starting Qredit Dev Node...")\n"
 			cd $qreditdir
 			forever start app.js --genesis genesisBlock.json --config config.json >&- 2>&-
 			cd $parent
-			echo -e "$(green "    ✔ Qredit Node was successfully started")\n"
+			echo -e "$(green "    ✔ Qredit Dev Node was successfully started")\n"
 			sleep 1
 			proc_vars
-			echo -e "\n$(green "       Qredit Node started with:")"
+			echo -e "\n$(green "       Qredit Dev Node started with:")"
 			echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
 			echo -e "$(green "   and Work Directory: $qreditdir")\n"
                 fi
 	else
-		echo -e "\n$(red "       ✘ No Qredit Node installation is found")\n"
+		echo -e "\n$(red "       ✘ No Qredit Dev Node installation is found")\n"
 	fi
 pause
 }
@@ -1190,16 +1190,16 @@ status(){
         if [ -e $qreditdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ Qredit Node installation found!")\n"
+                echo -e "\n$(green "       ✔ Qredit Dev Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green "      Qredit Node process is working with:")"
+                        echo -e "$(green "      Qredit Dev Node process is working with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
                         echo -e "$(green "   and Work Directory: $qreditdir")\n"
                 else
-                        echo -e "\n$(red "       ✘ No Qredit Node process is running")\n"
+                        echo -e "\n$(red "       ✘ No Qredit Dev Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No Qredit Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No Qredit Dev Node installation is found")\n"
         fi
 pause
 }
@@ -1208,15 +1208,15 @@ restart(){
 	asciiart
 	proc_vars
 	if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                echo -e "$(green "       Instance of Qredit Node found with:")"
+                echo -e "$(green "       Instance of Qredit Dev Node found with:")"
                 echo -e "$(green "       System PID: $node, Forever PID $forever_process")"
                 echo -e "$(green "       Directory: $qreditdir")\n"
 		echo -e "$(green "                Restarting...")"
 		forever restart $forever_process >&- 2>&-
-		echo -e "\n$(green "    ✔ Qredit Node was successfully restarted")\n"
+		echo -e "\n$(green "    ✔ Qredit Dev Node was successfully restarted")\n"
 		pause
 	else
-		echo -e "\n$(red "       ✘ Qredit Node process is not running")\n"
+		echo -e "\n$(red "       ✘ Qredit Dev Node process is not running")\n"
 		pause
 	fi
 }
@@ -1227,21 +1227,21 @@ killit(){
         if [ -e $qreditdir/app.js ]; then
                 clear
                 asciiart
-                echo -e "\n$(green "       ✔ Qredit Node installation found!")\n"
+                echo -e "\n$(green "       ✔ Qredit Dev Node installation found!")\n"
                 if [ "$node" != "" ] && [ "$node" != "0" ]; then
-                        echo -e "$(green " A working instance of Qredit Node was found with:")"
+                        echo -e "$(green " A working instance of Qredit Dev Node was found with:")"
                         echo -e "$(green "   System PID: $node, Forever PID $forever_process")"
                         echo -e "$(green "   and Work Directory: $testdir")\n"
-			echo -e "$(green "            Stopping Qredit Node...")\n"
+			echo -e "$(green "            Stopping Qredit Dev Node...")\n"
 			cd $testdir
 			forever stop $forever_process >&- 2>&-
 			cd $parent
-			echo -e "$(green "    ✔ Qredit Node was successfully stopped")\n"
+			echo -e "$(green "    ✔ Qredit Dev Node was successfully stopped")\n"
                 else
-			echo -e "\n$(red "       ✘ No Qredit Node process is running")\n"
+			echo -e "\n$(red "       ✘ No Qredit Dev Node process is running")\n"
                 fi
         else
-                echo -e "\n$(red "       ✘ No Qredit Node installation is found")\n"
+                echo -e "\n$(red "       ✘ No Qredit Dev Node installation is found")\n"
         fi
 pause
 }
@@ -1253,7 +1253,7 @@ log(){
 	echo -e "\n$(yellow " Use Ctrl+C to return to menu")\n"
 	proc_vars
 	trap : INT
-	tail -f $qreditdir/logs/qredit.log
+	tail -f $qreditdir/logs/qreditdev.log
 #pause
 }
 
@@ -1280,9 +1280,9 @@ show_menus() {
     echo "                  O P T I O N S"
     echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo
-    echo "              1. Install Qredit"
-    echo "              2. Reinstall Qredit"
-    echo "              3. Update Qredit"
+    echo "              1. Install Qredit Dev"
+    echo "              2. Reinstall Qredit Dev"
+    echo "              3. Update Qredit Dev"
     echo "              4. Rebuild Database"
     echo "              5. Set/Reset Secret"
     echo "              6. OS Update"
@@ -1291,9 +1291,9 @@ show_menus() {
     echo
     echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo
-    echo "              Q. Qredit Start"
-    echo "              R. Restart Qredit"
-    echo "              T. Kill Qredit"
+    echo "              Q. Qredit Dev Start"
+    echo "              R. Restart Qredit Dev"
+    echo "              T. Kill Qredit Dev"
     echo "              S. Node Status"
         echo "              L. Node Log"
     echo "              0. Exit"
@@ -1308,8 +1308,8 @@ sub_menu() {
     echo "               Additional Options"
     echo "         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo
-    echo "           1. Install Qredit Cli"
-    echo "           2. Install Qredit Explorer"
+    echo "           1. Install Qredit Dev Cli"
+    echo "           2. Install Qredit Dev Explorer"
     echo "           3. Install Snapshot script"
     echo "           4. Install Restart script"
     echo "           5. Purge PostgeSQL"
